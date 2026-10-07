@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blue Parrot Coffee - Multi-Store ERP & Payroll</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <!-- Tesseract.js CDN for 100% Free Client-Side Offline/Browser OCR Receipt Reading -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Brand Navigation Header -->
+  <header class="app-header">
+    <div class="brand-container">
+      <img src="assets/logo.svg" alt="Blue Parrot Coffee Logo" class="brand-logo">
+      <div class="brand-titles">
+        <h1>Blue Parrot Coffee</h1>
+        <p>Operations & Finance Manager</p>
+      </div>
+    </div>
+
+    <!-- Location Selector -->
+    <div class="location-selector" id="locationSelector">
+      <button class="location-btn active" data-loc="all">Consolidated (All)</button>
+      <button class="location-btn" data-loc="granville">Granville Island</button>
+      <button class="location-btn" data-loc="hillcrest">Hillcrest Centre</button>
+    </div>
+  </header>
+
+  <!-- Module Navigation Tabs -->
+  <nav class="app-nav">
+    <button class="nav-tab active" data-tab="tab-dashboard">?? Dashboard</button>
+    <button class="nav-tab" data-tab="tab-receipts">?? Snap Receipt & OCR</button>
+    <button class="nav-tab" data-tab="tab-accounting">?? Daily Accounting & P&L</button>
+    <button class="nav-tab" data-tab="tab-payroll">?? Canadian Payroll & T4s</button>
+    <button class="nav-tab" data-tab="tab-inventory">?? Inventory & Transfers</button>
+    <button class="nav-tab" data-tab="tab-suppliers">? Suppliers</button>
+  </nav>
+
+  <!-- Main Workspace Container -->
+  <main class="container">
+
+    <!-- KPI Summary Grid -->
+    <div class="stats-grid">
+      <div class="stat-card accent-emerald">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value" id="kpiRevenue">$0.00</div>
+        <div class="stat-sub">Daily register sales</div>
+      </div>
+      <div class="stat-card accent-amber">
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value" id="kpiExpense">$0.00</div>
+        <div class="stat-sub">Supplies, dairy & payroll</div>
+      </div>
+      <div class="stat-card accent-cyan">
+        <div class="stat-label">Net Operating Income</div>
+        <div class="stat-value" id="kpiNet">$0.00</div>
+        <div class="stat-sub">Before income tax</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CRA GST / ITC Balance</div>
+        <div class="stat-value" id="kpiGst">$0.00</div>
+        <div class="stat-sub">Net 5% GST to remit</div>
+      </div>
+    </div>
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">? Quick Daily Actions</h2>
+        </div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <button class="btn btn-amber" onclick="switchTab('tab-receipts')">?? Snap Receipt / Invoice</button>
+          <button class="btn" onclick="openSalesModal()">?? Log Today's Sales Register</button>
+          <button class="btn btn-success" onclick="switchTab('tab-payroll')">?? Run Bi-Weekly Payroll</button>
+          <button class="btn btn-secondary" onclick="openTransferModal()">?? Transfer Stock Between Stores</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">?? Recent Transactions & Register Entries</h2>
+          <button class="btn btn-secondary" onclick="loadTransactions()">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Subtotal</th>
+                <th>GST (5%)</th>
+                <th>PST (7%)</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="recentTransactionsTable">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: RECEIPT CAMERA & OCR CAPTURE -->
+    <section id="tab-receipts" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">?? Automated Receipt & Delivery Slip Scanner</h2>
+          <span style="font-size: 0.8rem; color: var(--gray-500);">100% Free In-Browser OCR • CRA 6-Yr Digital Audit Proof</span>
+        </div>
+
+        <div class="receipt-dropzone" id="receiptDropzone">
+          <div style="font-size: 2.5rem; margin-bottom: 8px;">??</div>
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">Take a Photo with Camera or Choose File</h3>
+          <p style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 14px;">Works seamlessly on mobile phones, tablets, or desktop slips.</p>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+          <input type="file" id="fileInput" accept="image/*,application/pdf" style="display: none;">
+          
+          <div style="display: inline-flex; gap: 10px;">
+            <button class="btn" onclick="document.getElementById('cameraInput').click()">?? Snap Photo with Phone Camera</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">?? Select From Device</button>
+          </div>
+
+          <div id="ocrProgress" style="display: none; margin-top: 15px;">
+            <div class="ocr-loader">
+              <span>?? Scanning text and extracting vendor, dates & totals...</span>
+            </div>
+            <p id="ocrStatusText" style="font-size: 0.75rem; color: var(--gray-500); margin-top: 5px;"></p>
+          </div>
+        </div>
+
+        <!-- Receipt Form Preview & Edit -->
+        <div id="receiptFormContainer" style="margin-top: 1.5rem; border-top: 1px solid var(--gray-200); padding-top: 1.25rem; display: none;">
+          <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Confirm Extracted Receipt Information</h3>
+          <form id="saveReceiptForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Assigned Location</label>
+                <select class="form-control" id="rcptLocation">
+                  <option value="granville">Granville Island</option>
+                  <option value="hillcrest">Hillcrest Centre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Vendor / Supplier Name</label>
+                <input type="text" class="form-control" id="rcptVendor" placeholder="e.g. Avalon Dairy, Costco" required>
+              </div>
+              <div class="form-group">
+                <label>Receipt Date</label>
+                <input type="date" class="form-control" id="rcptDate" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Subtotal ($)</label>
+                <input type="number" step="0.01" class="form-control" id="rcptSubtotal" required oninput="calcRcptTotal()">
+              </div>
+              <div class="form-group">
+                <label>GST 5% ($)</label>
+                <input type="number" step="0.01" class="form-control" id="rcptGst" value="0.00" oninput="calcRcptTotal()">
+              </div>
+              <div class="form-group">
+                <label>BC PST 7% ($)</label>
+                <input type="number" step="0.01" class="form-control" id="rcptPst" value="0.00" oninput="calcRcptTotal()">
+              </div>
+              <div class="form-group">
+                <label>Total Amount ($)</label>
+                <input type="number" step="0.01" class="form-control" id="rcptTotal" required style="font-weight: 800; color: var(--primary);">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Expense Notes / Items</label>
+                <input type="text" class="form-control" id="rcptNotes" placeholder="e.g. 10x Avalon Whole Milk 4L, 5x Oatly Barista">
+              </div>
+              <div class="form-group">
+                <label>Photo Preview</label>
+                <img id="rcptPreviewImg" src="" alt="Slip Preview" style="max-height: 80px; object-fit: contain; border-radius: 6px; border: 1px solid #ddd;">
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+              <button type="submit" class="btn btn-amber">?? Save Receipt & Post Expense</button>
+              <button type="button" class="btn btn-secondary" onclick="resetReceiptForm()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Scanned Slips Archive -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">??? Stored Receipts & Invoices</h2>
+          <button class="btn btn-secondary" onclick="loadReceiptsArchive()">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Location</th>
+                <th>Date</th>
+                <th>Vendor</th>
+                <th>Notes</th>
+                <th>Total</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="receiptsTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: ACCOUNTING, GST/PST & P&L -->
+    <section id="tab-accounting" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">?? Profit & Loss / Year-End Statements</h2>
+          <div style="display: flex; gap: 8px;">
+            <select class="form-control" id="acctReportYear" onchange="loadAccountingReports()">
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+            <button class="btn" onclick="window.print()">??? Print Financial Statement</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="plStatementContainer">
+          <!-- Revenue Breakdown -->
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 700; color: #065f46; margin-bottom: 0.75rem;">Revenue (Daily Sales)</h3>
+            <table class="data-table" id="plIncomeTable">
+              <thead><tr><th>Category</th><th style="text-align: right;">Amount</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Expense Breakdown -->
+          <div>
+            <h3 style="font-size: 1rem; font-weight: 700; color: #991b1b; margin-bottom: 0.75rem;">Operating Expenses</h3>
+            <table class="data-table" id="plExpenseTable">
+              <thead><tr><th>Category</th><th style="text-align: right;">Amount</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Canadian Tax Breakdown Box -->
+        <div style="margin-top: 1.5rem; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1.25rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">?? Canadian Sales Tax Remittance Summary (CRA GST & BC PST)</h3>
+          <div class="form-row">
+            <div>
+              <div style="font-size: 0.8rem; color: var(--gray-500);">GST Collected on Sales (5%):</div>
+              <div style="font-size: 1.1rem; font-weight: 700;" id="taxGstCollected">$0.00</div>
+            </div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--gray-500);">GST Paid on Expenses (ITCs):</div>
+              <div style="font-size: 1.1rem; font-weight: 700;" id="taxGstPaid">$0.00</div>
+            </div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--gray-500);">Net GST Owed to CRA:</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" id="taxNetGst">$0.00</div>
+            </div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--gray-500);">BC PST Paid on Supplies (7%):</div>
+              <div style="font-size: 1.1rem; font-weight: 700;" id="taxPstPaid">$0.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CANADIAN PAYROLL & T4s -->
+    <section id="tab-payroll" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">?? Run Bi-Weekly BC Payroll</h2>
+          <button class="btn btn-secondary" onclick="openNewEmployeeModal()">+ Add New Barista / Employee</button>
+        </div>
+
+        <form id="payrollRunForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Select Employee</label>
+              <select class="form-control" id="payEmployeeSelect" required onchange="updatePayRatePreview()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Location Charged</label>
+              <select class="form-control" id="payLocationSelect">
+                <option value="granville">Granville Island</option>
+                <option value="hillcrest">Hillcrest Centre</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hourly Wage</label>
+              <input type="text" class="form-control" id="payHourlyWage" readonly style="background: #f8fafc; font-weight: 600;">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Pay Period Start</label>
+              <input type="date" class="form-control" id="payPeriodStart" required>
+            </div>
+            <div class="form-group">
+              <label>Pay Period End</label>
+              <input type="date" class="form-control" id="payPeriodEnd" required>
+            </div>
+            <div class="form-group">
+              <label>Pay / Cheque Date</label>
+              <input type="date" class="form-control" id="payDate" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Regular Hours Worked</label>
+              <input type="number" step="0.5" class="form-control" id="payRegHours" value="70" required oninput="previewPayrollStub()">
+            </div>
+            <div class="form-group">
+              <label>Overtime Hours (1.5x)</label>
+              <input type="number" step="0.5" class="form-control" id="payOtHours" value="0" oninput="previewPayrollStub()">
+            </div>
+          </div>
+
+          <!-- Dynamic Live Paystub Preview Box -->
+          <div id="livePaystubPreview" style="background: #f8fafc; border: 1px solid var(--gray-200); border-radius: 8px; padding: 1.25rem; margin: 1rem 0;">
+            <!-- Rendered via JS -->
+          </div>
+
+          <button type="submit" class="btn btn-success">? Approve & Record Pay Run</button>
+        </form>
+      </div>
+
+      <!-- T4 Slips Generator Section -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">?? Year-End T4 Slip Generator (CRA Standard)</h2>
+          <div style="display: flex; gap: 8px;">
+            <select class="form-control" id="t4YearSelect" onchange="loadT4Slips()">
+              <option value="2026">Tax Year 2026</option>
+              <option value="2025">Tax Year 2025</option>
+            </select>
+            <button class="btn btn-secondary" onclick="loadT4Slips()">Generate Slips</button>
+          </div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 1rem;">
+          Official CRA T4 slip totals compiled directly from all pay runs for the calendar year. Click any slip to print or give to your baristas.
+        </p>
+
+        <div id="t4SlipsContainer">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- CRA PD7A Remittance Summary -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">??? Monthly CRA Remittance Report (PD7A)</h2>
+          <button class="btn btn-secondary" onclick="loadCraRemittance()">Refresh Report</button>
+        </div>
+        <div id="craRemittanceContent">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: INVENTORY & STOCK TRANSFERS -->
+    <section id="tab-inventory" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">?? Multi-Location Inventory Levels</h2>
+          <button class="btn btn-amber" onclick="openTransferModal()">?? Transfer Stock Between Stores</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Supplier</th>
+                <th>Granville Stock</th>
+                <th>Hillcrest Stock</th>
+                <th>Min Alert</th>
+                <th>Unit</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: SUPPLIERS -->
+    <section id="tab-suppliers" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">? Coffee, Dairy & Packaging Suppliers</h2>
+          <button class="btn" onclick="openAddSupplierModal()">+ Add Supplier</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Supplier Name</th>
+                <th>Category</th>
+                <th>Contact</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Payment Terms</th>
+              </tr>
+            </thead>
+            <tbody id="suppliersTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: LOG DAILY SALES -->
+  <div class="modal-overlay" id="salesModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('salesModal')">&times;</button>
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem;">?? Log Daily Register / POS Sales</h2>
+      <form id="salesForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Location</label>
+            <select class="form-control" id="salesLocation" required>
+              <option value="granville">Granville Island</option>
+              <option value="hillcrest">Hillcrest Centre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" class="form-control" id="salesDate" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Net Sales Subtotal ($)</label>
+            <input type="number" step="0.01" class="form-control" id="salesSubtotal" required oninput="calcSalesTotals()">
+          </div>
+          <div class="form-group">
+            <label>GST Collected (5%) ($)</label>
+            <input type="number" step="0.01" class="form-control" id="salesGst" required>
+          </div>
+          <div class="form-group">
+            <label>Total Register Amount ($)</label>
+            <input type="number" step="0.01" class="form-control" id="salesTotal" readonly style="background: #f8fafc; font-weight: 700;">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label>Register Shift / Description</label>
+          <input type="text" class="form-control" id="salesDesc" placeholder="e.g. Saturday Counter & Bakery POS Settlement">
+        </div>
+        <button type="submit" class="btn btn-amber">Record Sales Entry</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: STOCK TRANSFER -->
+  <div class="modal-overlay" id="transferModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('transferModal')">&times;</button>
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem;">?? Transfer Stock Between Locations</h2>
+      <form id="transferForm">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label>Select Item</label>
+          <select class="form-control" id="transferItemSelect" required>
+            <!-- Rendered via JS -->
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>From Location</label>
+            <select class="form-control" id="transferFrom" required>
+              <option value="granville">Granville Island</option>
+              <option value="hillcrest">Hillcrest Centre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>To Location</label>
+            <select class="form-control" id="transferTo" required>
+              <option value="hillcrest">Hillcrest Centre</option>
+              <option value="granville">Granville Island</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" step="1" class="form-control" id="transferQty" required min="1">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-amber">Execute Transfer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD EMPLOYEE -->
+  <div class="modal-overlay" id="employeeModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('employeeModal')">&times;</button>
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem;">?? Add New Employee (BC)</h2>
+      <form id="addEmployeeForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" class="form-control" id="empName" required placeholder="e.g. Noah Patel">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <input type="text" class="form-control" id="empRole" required placeholder="e.g. Barista">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Primary Location</label>
+            <select class="form-control" id="empLoc">
+              <option value="granville">Granville Island</option>
+              <option value="hillcrest">Hillcrest Centre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hourly Wage ($/hr)</label>
+            <input type="number" step="0.25" class="form-control" id="empWage" required value="17.50">
+          </div>
+          <div class="form-group">
+            <label>Social Insurance No. (SIN)</label>
+            <input type="text" class="form-control" id="empSin" placeholder="123-456-789">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success">Save Employee</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RECEIPT IMAGE PREVIEW -->
+  <div class="modal-overlay" id="receiptImageModal">
+    <div class="modal-content" style="text-align: center;">
+      <button class="modal-close" onclick="closeModal('receiptImageModal')">&times;</button>
+      <h3 id="receiptModalTitle" style="margin-bottom: 1rem;">Receipt Image</h3>
+      <img id="receiptFullImage" src="" alt="Receipt" style="max-width: 100%; max-height: 75vh; border-radius: 8px; box-shadow: var(--shadow-md);">
+    </div>
+  </div>
+
+  <!-- Script initialization -->
+  <script src="js/ocr.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

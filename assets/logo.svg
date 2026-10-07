@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="parrotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="40%" stop-color="#2563eb"/>
+      <stop offset="70%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="coffeeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="beakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Background Circle Badge -->
+  <circle cx="250" cy="250" r="235" fill="#f8fafc" stroke="#e2e8f0" stroke-width="6"/>
+  <circle cx="250" cy="250" r="215" fill="#ffffff" filter="url(#shadow)"/>
+
+  <!-- Coffee Cup Base -->
+  <g transform="translate(130, 250)">
+    <path d="M 30,50 L 210,50 C 205,130 175,170 120,170 C 65,170 35,130 30,50 Z" fill="url(#coffeeGrad)"/>
+    <!-- Cup Rim -->
+    <ellipse cx="120" cy="50" rx="90" ry="16" fill="#92400e"/>
+    <ellipse cx="120" cy="50" rx="80" ry="12" fill="#451a03"/>
+    <ellipse cx="120" cy="49" rx="70" ry="9" fill="#78350f"/>
+    <!-- Cup Handle -->
+    <path d="M 205,65 C 245,70 250,120 200,135" fill="none" stroke="url(#coffeeGrad)" stroke-width="18" stroke-linecap="round"/>
+    <!-- Steam waves -->
+    <path d="M 90,30 Q 80,10 95,-10 T 85,-40" fill="none" stroke="#d97706" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 120,25 Q 110,5 125,-15 T 115,-45" fill="none" stroke="#d97706" stroke-width="4.5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 150,30 Q 140,10 155,-10 T 145,-40" fill="none" stroke="#d97706" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- Blue Parrot Body & Crest -->
+  <g id="parrot" transform="translate(145, 75)">
+    <!-- Main Crown / Crest Feathers -->
+    <path d="M 80,45 C 50,15 70,-20 110,-5 C 100,15 95,30 80,45 Z" fill="#0284c7"/>
+    <path d="M 95,40 C 85,0 120,-25 145,-5 C 130,15 115,30 95,40 Z" fill="#06b6d4"/>
+    <path d="M 115,48 C 120,10 160,-5 170,25 C 150,35 130,42 115,48 Z" fill="#38bdf8"/>
+
+    <!-- Head & Body Silhouette -->
+    <path d="M 65,110 C 60,65 95,45 130,45 C 175,45 205,80 205,140 C 205,210 155,245 110,245 C 80,245 68,180 65,110 Z" fill="url(#parrotGrad)"/>
+
+    <!-- Wing Highlight Layer -->
+    <path d="M 120,120 C 170,120 195,155 190,210 C 160,230 130,220 115,185 C 105,160 108,135 120,120 Z" fill="#1d4ed8" opacity="0.9"/>
+    <path d="M 130,140 C 165,140 185,165 180,200 C 155,215 135,205 125,180 Z" fill="#0284c7" opacity="0.85"/>
+
+    <!-- Cheek & Eye -->
+    <circle cx="105" cy="85" r="14" fill="#ffffff"/>
+    <circle cx="103" cy="85" r="7" fill="#0f172a"/>
+    <circle cx="101" cy="83" r="2.5" fill="#ffffff"/>
+
+    <!-- Curved Parrot Beak -->
+    <path d="M 82,75 C 65,75 40,88 35,115 C 50,118 68,105 82,102 Z" fill="url(#beakGrad)"/>
+    <path d="M 75,102 C 65,103 48,116 45,125 C 58,124 70,114 75,108 Z" fill="#b45309"/>
+  </g>
+
+  <!-- Typography Banner Ring -->
+  <path id="textPathTop" d="M 70,250 A 180,180 0 1,1 430,250" fill="none"/>
+  <text font-family="'Montserrat', 'Segoe UI', -apple-system, sans-serif" font-size="28" font-weight="900" fill="#1e3a8a" letter-spacing="7">
+    <textPath href="#textPathTop" startOffset="50%" text-anchor="middle">
+      BLUE PARROT COFFEE
+    </textPath>
+  </text>
+
+  <path id="textPathBottom" d="M 430,250 A 180,180 0 0,1 70,250" fill="none"/>
+  <text font-family="'Segoe UI', -apple-system, sans-serif" font-size="16" font-weight="700" fill="#b45309" letter-spacing="4">
+    <textPath href="#textPathBottom" startOffset="50%" text-anchor="middle">
+      GRANVILLE ISLAND • HILLCREST
+    </textPath>
+  </text>
+</svg>
