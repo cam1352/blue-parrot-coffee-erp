@@ -502,7 +502,7 @@ async function previewPayrollStub() {
     previewDiv.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-bottom: 8px;">
         <div>
-          <strong>${employee.name}</strong>  ${employee.role}
+          <strong>${employee.name}</strong> Â -  ${employee.role}
           <div style="font-size: 0.75rem; color: #666;">SIN: ${employee.sin || "###-###-###"} | Province: British Columbia</div>
         </div>
         <div style="text-align: right;">
@@ -545,7 +545,7 @@ async function loadT4Slips() {
         <div class="t4-header">
           <div>
             <div style="font-size: 1.1rem; font-weight: 800;">${t4.employer.name}</div>
-            <div style="font-size: 0.75rem; color: #555;">CRA BN: ${t4.employer.businessNumber}  Vancouver, BC</div>
+            <div style="font-size: 0.75rem; color: #555;">CRA BN: ${t4.employer.businessNumber} Â -  Vancouver, BC</div>
             <div style="margin-top: 6px;"><strong>Employee: ${t4.employee.name}</strong> (SIN: ${t4.employee.sin || '###-###-###'})</div>
           </div>
           <div style="text-align: right;">
